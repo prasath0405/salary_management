@@ -1,0 +1,25 @@
+.employee-table-container {
+    width: 100%;
+  }
+  
+  .salary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .salary-table th, 
+  .salary-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .salary-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+  
+  .salary-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
