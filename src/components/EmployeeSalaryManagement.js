@@ -1,48 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import '../styles/EmployeeSalaryManagement.css';
 
 function EmployeeSalaryManagement() {
-  const [employees, setEmployees] = useState([
-    { id: 1, name: 'John Doe', department: 'IT', salary: 75000 },
-    { id: 2, name: 'Jane Smith', department: 'HR', salary: 65000 },
-    { id: 3, name: 'Mike Johnson', department: 'Finance', salary: 80000 }
-  ]);
-
+  const [employees, setEmployees] = useState([]);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [newEmployee, setNewEmployee] = useState({
     name: '',
     department: '',
     salary: ''
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch Employees
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        // Ensure your backend server URL is correct
+        const response = await axios.get('http://localhost:5000/api/employees');
+        setEmployees(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+        setError('Failed to fetch employees');
+        setLoading(false);
+      }
+    };
+    fetchEmployees();
+  }, []);
 
   // Create Operation
-  const handleAddEmployee = (e) => {
+  const handleAddEmployee = async (e) => {
     e.preventDefault();
     
-    // Validate input
+    // Input validation
     if (!newEmployee.name || !newEmployee.department || !newEmployee.salary) {
       alert('Please fill in all fields');
       return;
     }
 
-    const employeeToAdd = {
-      ...newEmployee,
-      id: employees.length > 0 ? Math.max(...employees.map(emp => emp.id)) + 1 : 1,
-      salary: parseFloat(newEmployee.salary)
-    };
+    try {
+      const response = await axios.post('http://localhost:5000/api/employees', {
+        name: newEmployee.name,
+        department: newEmployee.department,
+        salary: parseFloat(newEmployee.salary)
+      });
 
-    setEmployees([...employees, employeeToAdd]);
-    
-    // Reset form
-    setNewEmployee({ name: '', department: '', salary: '' });
+      // Add new employee to state
+      setEmployees([...employees, response.data]);
+      
+      // Reset form
+      setNewEmployee({ name: '', department: '', salary: '' });
+    } catch (error) {
+      console.error('Error adding employee:', error);
+      alert('Failed to add employee');
+    }
   };
 
   // Update Operation
   const handleEditEmployee = (employee) => {
-    setEditingEmployee(employee);
+    setEditingEmployee({...employee});
   };
 
-  const handleUpdateEmployee = (e) => {
+  const handleUpdateEmployee = async (e) => {
     e.preventDefault();
     
     // Validate input
@@ -51,19 +72,39 @@ function EmployeeSalaryManagement() {
       return;
     }
 
-    setEmployees(employees.map(emp => 
-      emp.id === editingEmployee.id ? editingEmployee : emp
-    ));
+    try {
+      const response = await axios.put(`http://localhost:5000/api/employees/${editingEmployee._id}`, {
+        name: editingEmployee.name,
+        department: editingEmployee.department,
+        salary: parseFloat(editingEmployee.salary)
+      });
 
-    // Reset editing state
-    setEditingEmployee(null);
+      // Update employees in state
+      setEmployees(employees.map(emp => 
+        emp._id === editingEmployee._id ? response.data : emp
+      ));
+
+      // Reset editing state
+      setEditingEmployee(null);
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      alert('Failed to update employee');
+    }
   };
 
   // Delete Operation
-  const handleDeleteEmployee = (id) => {
+  const handleDeleteEmployee = async (id) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this employee?');
     if (confirmDelete) {
-      setEmployees(employees.filter(emp => emp.id !== id));
+      try {
+        await axios.delete(`http://localhost:5000/api/employees/${id}`);
+        
+        // Remove employee from state
+        setEmployees(employees.filter(emp => emp._id !== id));
+      } catch (error) {
+        console.error('Error deleting employee:', error);
+        alert('Failed to delete employee');
+      }
     }
   };
 
@@ -83,6 +124,16 @@ function EmployeeSalaryManagement() {
       [name]: value
     }));
   };
+
+  // Render loading state
+  if (loading) {
+    return <div>Loading employees...</div>;
+  }
+
+  // Render error state
+  if (error) {
+    return <div className="error">{error}</div>;
+  }
 
   return (
     <div className="employee-salary-management">
@@ -127,11 +178,11 @@ function EmployeeSalaryManagement() {
         </thead>
         <tbody>
           {employees.map((employee) => (
-            <tr key={employee.id}>
-              {editingEmployee && editingEmployee.id === employee.id ? (
+            <tr key={employee._id}>
+              {editingEmployee && editingEmployee._id === employee._id ? (
                 // Edit mode
                 <>
-                  <td>{employee.id}</td>
+                  <td>{employee._id}</td>
                   <td>
                     <input
                       type="text"
@@ -164,13 +215,13 @@ function EmployeeSalaryManagement() {
               ) : (
                 // View mode
                 <>
-                  <td>{employee.id}</td>
+                  <td>{employee._id}</td>
                   <td>{employee.name}</td>
                   <td>{employee.department}</td>
                   <td>${employee.salary.toLocaleString()}</td>
                   <td>
                     <button onClick={() => handleEditEmployee(employee)}>Edit</button>
-                    <button onClick={() => handleDeleteEmployee(employee.id)}>Delete</button>
+                    <button onClick={() => handleDeleteEmployee(employee._id)}>Delete</button>
                   </td>
                 </>
               )}
