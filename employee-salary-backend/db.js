@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 require('dotenv').config(); // Ensure this is at the top
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/employee_salary_db';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017//employee_salary_db';
 
 const connectDB = async () => {
   try {
