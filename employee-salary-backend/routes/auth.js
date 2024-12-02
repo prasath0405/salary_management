@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const authMiddleware = require('../middleware/auth'); 
 
 // Secret key for JWT (store this securely, ideally in environment variables)
 const JWT_SECRET = 'your_jwt_secret_key';
@@ -50,6 +51,23 @@ router.post('/login', async (req, res) => {
     res.json({ token });
   } catch (error) {
     res.status(500).json({ message: 'Login error', error: error.message });
+  }
+});
+
+// Token validation route
+router.get('/validate', authMiddleware, (req, res) => {
+  try {
+    // If the request reaches here, the token is valid
+    // req.user contains the decoded token payload
+    res.json({ 
+      message: 'Token is valid', 
+      user: {
+        id: req.user.id,
+        username: req.user.username
+      }
+    });
+  } catch (error) {
+    res.status(401).json({ message: 'Token validation failed' });
   }
 });
 
