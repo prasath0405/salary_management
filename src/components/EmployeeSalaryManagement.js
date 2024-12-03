@@ -169,7 +169,7 @@ function EmployeeSalaryManagement() {
       <table className="salary-table">
         <thead>
           <tr>
-            <th>ID</th>
+            <th>S.No</th>
             <th>Name</th>
             <th>Department</th>
             <th>Salary</th>
@@ -177,12 +177,12 @@ function EmployeeSalaryManagement() {
           </tr>
         </thead>
         <tbody>
-          {employees.map((employee) => (
+          {employees.map((employee, index) => (
             <tr key={employee._id}>
+              <td>{index + 1}</td>
               {editingEmployee && editingEmployee._id === employee._id ? (
                 // Edit mode
                 <>
-                  <td>{employee._id}</td>
                   <td>
                     <input
                       type="text"
@@ -215,7 +215,6 @@ function EmployeeSalaryManagement() {
               ) : (
                 // View mode
                 <>
-                  <td>{employee._id}</td>
                   <td>{employee.name}</td>
                   <td>{employee.department}</td>
                   <td>${employee.salary.toLocaleString()}</td>
